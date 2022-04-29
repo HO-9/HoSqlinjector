@@ -79,7 +79,7 @@ def blind_httpreq(min, max, query):
 
     mid = (min+max) / 2
     tmp_cnt = httpreq(query + ">" + str(mid))
-    print query + ">" + str(mid)
+    #print query + ">" + str(mid)
 
     if tmp_cnt.find('Nancy') > 0: #아직 노완벽벽
        cnt = 1
