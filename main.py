@@ -16,11 +16,12 @@ dbms = dbck.check_dbms()
 log.print_db_log(dbms)
 
 if dbms != -1:
-    error.error_based_sql(dbms)
+    time.time_based_sql(dbms)
 else:
     #blind.blind_based_sql(dbms)
     print('b')
-    time.time_based_sql(dbms)
+    error.error_based_sql(dbms)
+
 
 # else:
 # blind_sql

@@ -9,7 +9,7 @@ import error_sql as error
 import socket
 import setting as set
 import threading
-import log
+import log as log
 import time
 
 
@@ -43,13 +43,13 @@ def error_db_check():
         print "[Info] Couldn't Assume database"
         return -1
 
-def blind_db_check():
-    a = set.httpreq("1 and substr(@@version,1,1)=5-- ")
-    print(a)
+#def blind_db_check():
+#    a = set.httpreq("1 and substr(@@version,1,1)=5-- ")
+#    print(a)
 
-def time_db_check():
-    set.caller_time_httpreq("' and select count(*) from information_schema.tables tab1,information_schema.tables tab2,information_schema.tables tab3")
-    #set.httpreq("' and select count(*) from information_schema.tables tab1,information_schema.tables tab2,information_schema.tables tab3")
+#def time_db_check():
+#    set.caller_time_httpreq("' and select count(*) from information_schema.tables tab1,information_schema.tables tab2,information_schema.tables tab3")
+#    #set.httpreq("' and select count(*) from information_schema.tables tab1,information_schema.tables tab2,information_schema.tables tab3")
 
 
 def scan_check(port):
@@ -72,11 +72,16 @@ def check_dbms():
         time.sleep(0.1)
         thread = threading.Thread(target=scan_check, kwargs={"port": db_port[db_arr]})
         thread.start()
-    print("b" + str(open_port))
 
     # Modifying Open port number to DbName
-    # 만약 service 두개 이용하면 맨 위에서 걸러 질 수가 있음 염두해서 다시
-    print("b"+str(open_port))
+    # 만약 service 두개 이용하면 맨 위에서 걸러 질 수가 있음 염두해서 다시 짜야 됨 일단 초안임
+
+
+    #Scan 후 포트에 대한 응답값이 없으면 error 기반의 체크 시작
+    #이후 error를 통해서 DB를 알아내면 error 기반 Injection시작
+    #error 값을 넣어줬는데 동일한 반응 보일경우 Time based Injection 시도
+
+    log.debugging("Check Port: "+str(open_port))
     if open_port == db["mysql"]:
         return "mysql"
     elif open_port in db["mssql"]:
