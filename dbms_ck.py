@@ -18,30 +18,42 @@ import time
 #1521,1522               -> Oracle
 
 
+finger_error = False
+finger_scan = False
 db_port = [3306,1521,1522,1433,1434]
 open_port = 0
 db = {"mysql":3306, "mssql":[1433,1434], "oracle":[1521,1522]}
 
 #def check_name():
 
-def error_db_check():
+def error_db_check(cn_dbms):
+
+    global finger_error
+    global finger_scan
+
     ck_dbms = set.httpreq("'")
 
     if ck_dbms.find('MySQL') != -1:
         cn_dbms = 'mysql'
-        return cn_dbms
 
     elif ck_dbms.find('mssql') != -1:
         cn_dbms = 'mssql'
-        return cn_dbms
 
     elif ck_dbms.find('ORA') != -1:
         cn_dbms = 'oracle'
-        return cn_dbms
 
     else:
+        if cn_dbms != "":
+            print("a")
+            global finger_scan
+            finger_scan = True
+            return cn_dbms
+
         print "[Info] Couldn't Assume database"
         return -1
+
+    finger_error = True
+    return cn_dbms
 
 #def blind_db_check():
 #    a = set.httpreq("1 and substr(@@version,1,1)=5-- ")
@@ -67,6 +79,10 @@ def scan_check(port):
 
 
 def check_dbms():
+    global finger_scan
+    finger_scan=True
+    cn_dbms = ""
+
     for db_arr in range(0,len(db_port)):
         #print(db_port[db_arr])
         time.sleep(0.1)
@@ -82,14 +98,15 @@ def check_dbms():
     #error 값을 넣어줬는데 동일한 반응 보일경우 Time based Injection 시도
 
     log.debugging("Check Port: "+str(open_port))
+
     if open_port == db["mysql"]:
-        return "mysql"
+        cn_dbms = "mysql"
     elif open_port in db["mssql"]:
-        return "mssql"
+        cn_dbms = "mssql"
     elif open_port in db["oracle"]:
-        return "oracle"
-    else:
-        error_db_check()
+        cn_dbms = "oracle"
+    print(finger_scan)
+    return error_db_check(cn_dbms)
 
 
 
