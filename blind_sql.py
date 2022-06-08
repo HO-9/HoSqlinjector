@@ -73,3 +73,4 @@ def get_cnt_query(div):
         dcount = "1 and (select count(*) from " + set.args.table + ")"  # data 개수 확인
         count = set.binary_httpreq(1, 1024, dcount)
         get_data('d', count)
+

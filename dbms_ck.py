@@ -26,6 +26,7 @@ db = {"mysql":3306, "mssql":[1433,1434], "oracle":[1521,1522]}
 
 #def check_name():
 
+
 def error_db_check(cn_dbms):
 
     global finger_error
@@ -44,16 +45,13 @@ def error_db_check(cn_dbms):
 
     else:
         if cn_dbms != "":
-            print("a")
-            global finger_scan
-            finger_scan = True
-            return cn_dbms
+            return cn_dbms,finger_scan,finger_error
 
         print "[Info] Couldn't Assume database"
-        return -1
+        return -1,finger_scan,finger_error
 
     finger_error = True
-    return cn_dbms
+    return cn_dbms,finger_scan,finger_error
 
 #def blind_db_check():
 #    a = set.httpreq("1 and substr(@@version,1,1)=5-- ")
@@ -79,8 +77,6 @@ def scan_check(port):
 
 
 def check_dbms():
-    global finger_scan
-    finger_scan=True
     cn_dbms = ""
 
     for db_arr in range(0,len(db_port)):
@@ -105,7 +101,11 @@ def check_dbms():
         cn_dbms = "mssql"
     elif open_port in db["oracle"]:
         cn_dbms = "oracle"
-    print(finger_scan)
+    else:
+        return error_db_check(cn_dbms)
+
+    global finger_scan
+    finger_scan = True
     return error_db_check(cn_dbms)
 
 
