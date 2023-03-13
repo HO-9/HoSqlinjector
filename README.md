@@ -5,11 +5,6 @@
   <img src="https://img.shields.io/github/watchers/HO-9/HoSqlinjector?style=social">
 </p>
 <p>
-초기버전으로 만든 SQL Injector Beta 1.0
+SQL Injector Beta 1.0
 </p>
-<p>
-개인적으로 침투 도구들에 대해서 연구하기 위해서 직접 만든 1호 도구입니다.
-</p>
-<p>자동적으로 DB Fingerprint를 통해서 DB를 확인하고 각각의 DBMS에 상응하는 Query구문을 통해서 Exploit을 진행합니다.</p> 
-<p>DB Fingerprint는 Scan을 통한 방식과 Error를 통한 DB 노출 2가지 방식으로 얻게됩니다.</p>
-<p>아직은 Beta 버전이여서 완성이 안됐습니다!</p>
+
